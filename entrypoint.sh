@@ -18,8 +18,8 @@ sh -c "git config --global credential.username $GITLAB_USERNAME"
 sh -c "git config --global core.askPass /cred-helper.sh"
 sh -c "git config --global credential.helper cache"
 sh -c "git remote add mirror $*"
-if [[ -n "${REMOVE_BRANCH}"]; then
-   if [[ "${REMOVE_BRANCH}"=="true"]; then
+if [[ -n "${REMOVE_BRANCH}" ]]; then
+   if [[ "${REMOVE_BRANCH}"=="true" ]]; then
       sh -c "echo removing $branch branch at $(git remote get-url --push mirror)"
       sh -c "git branch -D $branch"
    fi
