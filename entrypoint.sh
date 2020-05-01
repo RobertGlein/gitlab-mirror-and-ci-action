@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # Error handling
-set -euo pipefail
+set -eo pipefail
 # set -e : Instructs bash to immediately exit if any command has a non-zero exit status.
-# set -u : Reference to any variable not previously defined - with the exceptions of $* and $@ - is an error
+# (not active) set -u : Reference to any variable not previously defined - with the exceptions of $* and $@ - is an error
 # set -o pipefail : Prevents errors in a pipeline from being masked.
 
 DEFAULT_POLL_TIMEOUT=10
@@ -18,12 +18,15 @@ sh -c "git config --global credential.username $GITLAB_USERNAME"
 sh -c "git config --global core.askPass /cred-helper.sh"
 sh -c "git config --global credential.helper cache"
 sh -c "git remote add mirror $*"
-if [[ -n "${REMOVE_BRANCH}" ]]; then
-   sh -c "echo ${REMOVE_BRANCH}"
-   if [[ "${REMOVE_BRANCH}"="true" ]]; then
-      sh -c "echo removing $branch branch at $(git remote get-url --push mirror)"
-      sh -c "git remote remove $branch"
-   fi
+if [[ -n "${REMOVE_BRANCH}" ]]; then # Check if variable exists 
+   if [[ "${REMOVE_BRANCH}" == "true" ]]; then 
+      # If branch exists; w/o sh -c ""
+      branchExists=$(git ls-remote $(git remote get-url --push mirror) ${CHECKOUT_BRANCH:-$DEFAULT_GITHUB_REF} | wc -l)
+      if [[ ${branchExists} == 1 ]]; then
+         sh -c "echo removing $branch branch at $(git remote get-url --push mirror)"		
+         sh -c "git push mirror --delete $branch"
+      fi
+   fi		
 fi
 sh -c "echo pushing to $branch branch at $(git remote get-url --push mirror)"
 sh -c "git push mirror $branch"
